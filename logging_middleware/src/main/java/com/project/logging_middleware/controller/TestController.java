@@ -12,7 +12,7 @@ public class TestController {
     public TestController(LoggingService ls) {
         this.ls = ls;
     }
-
+    
     @GetMapping("/test")
     public String test() {
 
@@ -23,7 +23,8 @@ public class TestController {
                 "Test endpoint called successfully"
         );
 
-        return "Working";
+        return "Working | backend | info | controller | Test endpoint called successfully";
     }
+
 }
 
