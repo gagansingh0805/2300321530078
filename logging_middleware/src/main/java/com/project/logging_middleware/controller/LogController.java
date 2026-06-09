@@ -1,5 +1,7 @@
 package com.project.logging_middleware.controller;
 
+import com.project.logging_middleware.service.LoggingService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -8,13 +10,24 @@ import java.util.Map;
 @RequestMapping("/logs")
 public class LogController {
 
+    private final LoggingService ls;
+
+    public LogController(LoggingService ls) {
+        this.ls = ls;
+    }
+
     @PostMapping
-    public String saveLog(
+    public ResponseEntity<String> saveLog(
             @RequestBody Map<String, String> body
     ) {
 
-        System.out.println(body);
+        String response = ls.Log(
+                body.get("stack"),
+                body.get("level"),
+                body.get("package"),
+                body.get("message")
+        );
 
-        return "Log Saved";
+        return ResponseEntity.ok(response);
     }
 }

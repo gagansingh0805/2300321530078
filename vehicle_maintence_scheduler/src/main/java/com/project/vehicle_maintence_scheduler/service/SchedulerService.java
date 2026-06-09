@@ -3,6 +3,7 @@ package com.project.vehicle_maintence_scheduler.service;
 import com.project.vehicle_maintence_scheduler.client.VehicleClient;
 import com.project.vehicle_maintence_scheduler.dto.Depot;
 import com.project.vehicle_maintence_scheduler.dto.Vehicle;
+import com.project.vehicle_maintence_scheduler.logging.LoggingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,26 @@ public class SchedulerService {
 
     private final VehicleClient vc;
 
+    private final LoggingService ls;
+
     public List<Vehicle> optimize(int depotId) {
+
+        ls.log(
+                "backend",
+                "info",
+                "service",
+                "Optimization started for depot " + depotId
+        );
 
         List<Depot> d =
                 vc.getDepots().getDepots();
+
+        ls.log(
+                "backend",
+                "info",
+                "client",
+                "Depots fetched successfully"
+        );
 
         int h = 0;
 
@@ -27,11 +44,25 @@ public class SchedulerService {
             if (x.getId() == depotId) {
 
                 h = x.getMechanicHours();
+
+                ls.log(
+                        "backend",
+                        "info",
+                        "service",
+                        "Mechanic hours found: " + h
+                );
             }
         }
 
         List<Vehicle> v =
                 vc.getVehicles().getVehicles();
+
+        ls.log(
+                "backend",
+                "info",
+                "client",
+                "Vehicles fetched successfully"
+        );
 
         int n = v.size();
 
@@ -57,6 +88,13 @@ public class SchedulerService {
             }
         }
 
+        ls.log(
+                "backend",
+                "info",
+                "service",
+                "DP optimization completed"
+        );
+
         List<Vehicle> ans =
                 new ArrayList<>();
 
@@ -73,6 +111,13 @@ public class SchedulerService {
                 j -= c.getDuration();
             }
         }
+
+        ls.log(
+                "backend",
+                "info",
+                "service",
+                "Selected vehicles count: " + ans.size()
+        );
 
         return ans;
     }
