@@ -2,6 +2,7 @@ package com.project.logging_middleware.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,10 +15,13 @@ public class LoggingService {
     @Value("${logging.url}")
     private String url;
 
-    @Value("${logging.token}")
-    private String token;
+    private final AuthService as;
 
-    public void Log(
+    public LoggingService(AuthService as) {
+        this.as = as;
+    }
+
+    public String Log(
             String stack,
             String level,
             String packageName,
@@ -26,13 +30,25 @@ public class LoggingService {
 
         try {
 
-            RestTemplate rt = new RestTemplate();
+            String token = as.getToken();
 
-            HttpHeaders h = new HttpHeaders();
+            System.out.println("TOKEN:");
+            System.out.println(token);
 
-            h.setContentType(MediaType.APPLICATION_JSON);
+            SimpleClientHttpRequestFactory f =
+                    new SimpleClientHttpRequestFactory();
 
-            h.setBearerAuth(token);
+            f.setConnectTimeout(5000);
+
+            f.setReadTimeout(5000);
+
+            RestTemplate rt = new RestTemplate(f);
+
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            headers.setBearerAuth(token);
 
             Map<String, String> body = new HashMap<>();
 
@@ -41,24 +57,27 @@ public class LoggingService {
             body.put("package", packageName);
             body.put("message", message);
 
-            HttpEntity<Map<String, String>> e =
-                    new HttpEntity<>(body, h);
+            System.out.println("Sending log...");
+            System.out.println(body);
 
-            ResponseEntity<String> r =
+            HttpEntity<Map<String, String>> entity =
+                    new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response =
                     rt.exchange(
                             url,
                             HttpMethod.POST,
-                            e,
+                            entity,
                             String.class
                     );
 
-            System.out.println(r.getBody());
+            System.out.println(response.getBody());
 
-        } catch (Exception ex) {
+            return response.getBody();
 
-            System.out.println(
-                    "Logging failed: " + ex.getMessage()
-            );
+        } catch (Exception e) {
+
+            return "LOG_ERROR : " + e.getMessage();
         }
     }
 }
